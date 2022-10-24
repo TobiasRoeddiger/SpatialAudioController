@@ -1,0 +1,171 @@
+<html>
+
+<head>
+    <style>
+        body {
+            /* ff 3.6+ */
+            background: -moz-radial-gradient(circle at 50% 50%, rgba(237, 237, 237, 1) 0%, rgba(173, 173, 173, 1) 100%);
+
+            /* safari 5.1+,chrome 10+ */
+            background: -webkit-radial-gradient(circle at 50% 50%, rgba(237, 237, 237, 1) 0%, rgba(173, 173, 173, 1) 100%);
+
+            /* opera 11.10+ */
+            background: -o-radial-gradient(circle at 50% 50%, rgba(237, 237, 237, 1) 0%, rgba(173, 173, 173, 1) 100%);
+
+            /* ie 10+ */
+            background: -ms-radial-gradient(circle at 50% 50%, rgba(237, 237, 237, 1) 0%, rgba(173, 173, 173, 1) 100%);
+
+            /* global 92%+ browsers support */
+            background: radial-gradient(circle at 50% 50%, rgba(237, 237, 237, 1) 0%, rgba(173, 173, 173, 1) 100%);
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+
+<body style="padding: 0px !important; margin: 0px !important;">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js"
+        integrity="sha512-aVKKRRi/Q/YV+4mjoKBsE4x3H+BkegoM/em46NNlCqNTmUYADjBbeNefNxYV7giUp0VxICtqdrbqU7iVaeZNXA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <img src="https://resenv.media.mit.edu/hearthere/images/logo_resenv_black.svg" width="200px">
+    <div
+        style="position: absolute; bottom: 0px; right: 0px; margin: 10px; z-index: 200; background: lightgray; padding: 8px; border-radius: 8px; font-size: smaller !important;">
+        <button id="manualButton" onclick="setManual()" class="btn btn-secondary btn-sm"
+            style="border-width: 2px; border-color: coral;">Manual</button>
+        <button id="automaticButton" onclick="setAutomatic()" class="btn btn-secondary btn-sm"
+            style="border-width: 2px;">Automatic</button>
+        <div class="d-flex flex-row mt-2">
+
+            <div style="width: 100%">X:<span id="x"> -</span></div>
+            <div style="width: 100%">Y:<span id="y"> -</span></div>
+        </div>
+    </div>
+    <div style="position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 100;">
+        <div id="base" style="width: 100%; height: 100%; background: transparent;">
+            <div id="pointer"
+                style="width: 40px; height: 40px; border-radius: 20px; background: coral; position: relative; left: 200px; top: 20px;">
+
+            </div>
+        </div>
+    </div>
+    <div style="position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 0;">
+        <div class="w-100 h-100 d-flex justify-content-center align-items-center">
+            <img width="300" style="margin-bottom: 80px;" src="cap.png">
+        </div>
+
+    </div>
+
+
+    <script>
+        var isManual = true;
+        var isAutomatic = false;
+        function setManual() {
+            isManual = true;
+            isAutomatic = false;
+            $("#automaticButton").css("border-color", "transparent");
+            $("#manualButton").css("border-color", "coral");
+            $('#pointer').css("background-color", "coral");
+        }
+
+        function setAutomatic() {
+            isManual = false;
+            isAutomatic = true;
+            $("#manualButton").css("border-color", "transparent")
+            $("#automaticButton").css("border-color", "lightseagreen")
+            $('#pointer').css("background-color", "lightseagreen");
+            randomPosition();
+        }
+
+        $("#base").mousemove(function (e) {
+            if (isAutomatic) {
+                return;
+            }
+
+            var parentOffset = $(this).parent().offset();
+            //or $(this).offset(); if you really just want the current element's offset
+            var relX = e.pageX - parentOffset.left;
+            var relY = e.pageY - parentOffset.top;
+
+            if (relX < 0 || relY < 0) {
+                return;
+            }
+
+            $('#pointer').css("left", relX - 20);
+            $('#pointer').css("top", relY - 20);
+            outputData(relX / window.innerWidth, relY / window.innerHeight);
+        });
+
+        function randomPosition() {
+            var angle = Math.random() * 2 * Math.PI;
+            var x = window.innerWidth / 2 + Math.sin(angle) * 300; // TODO
+            var y = window.innerHeight / 2 + Math.cos(angle) * 300; // TODO
+
+            console.log(x);
+            console.log(y);
+
+            $('#pointer').css("left", x - 20);
+            $('#pointer').css("top", y - 20);
+            outputData(x / window.innerWidth, y / window.innerHeight);
+        }
+
+        setInterval(() => {
+            if (!isAutomatic) {
+                return;
+            }
+            randomPosition();
+        }, 5000);
+
+        function outputData(x, y) {
+            if (x === undefined) return;
+            if (y === undefined) return;
+
+            $("#x").text(Math.floor(x * 127));
+            $("#y").text(Math.floor(y * 127));
+
+            xOutput.send([176, 16, Math.floor(x * 127)]);
+            yOutput.send([176, 16, Math.floor(y * 127)]);
+        }
+
+        var midi = null;  // global MIDIAccess object
+        var xOutput = null;
+        var yOutput = null;
+        function onMIDISuccess(midiAccess) {
+            console.log("MIDI ready!");
+            midi = midiAccess;  // store in the global (in real usage, would probably keep in an object instance)
+            listInputsAndOutputs(midi);
+        }
+
+        function onMIDIFailure(msg) {
+            console.error(`Failed to get MIDI access - ${msg}`);
+        }
+
+        function listInputsAndOutputs(midiAccess) {
+            var i = 0;
+
+            for (const entry of midi.outputs) {
+                const output = entry[1];
+                if (output.manufacturer !== "Apple Inc.") {
+                    continue;
+                }
+                if (i === 0) {
+                    xOutput = output;
+                    i++;
+                } else if (i === 1) {
+                    yOutput = output;
+                    i++;
+                }
+                console.log(
+                    `Output port [type:'${output.type}'] id: '${output.id}' manufacturer: '${output.manufacturer}' name: '${output.name}' version: '${output.version}'`
+                );
+            }
+        }
+
+        navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
+
+
+
+    </script>
+
+</body>
+
+</html>
