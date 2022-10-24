@@ -1,4 +1,4 @@
-# SpatialAudipCap
+# SpatialAudioCap
 Generates midi control output from 2D input.
 
 ## Running
