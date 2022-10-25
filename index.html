@@ -1,6 +1,7 @@
 <html>
 
 <head>
+    <title>Spatial Audio Controller</title>
     <style>
         body {
             /* ff 3.6+ */
@@ -27,57 +28,205 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js"
         integrity="sha512-aVKKRRi/Q/YV+4mjoKBsE4x3H+BkegoM/em46NNlCqNTmUYADjBbeNefNxYV7giUp0VxICtqdrbqU7iVaeZNXA=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <img src="https://resenv.media.mit.edu/hearthere/images/logo_resenv_black.svg" width="200px">
+    <img style="position: absolute; left: 0px; top: 0px"
+        src="https://resenv.media.mit.edu/hearthere/images/logo_resenv_black.svg" width="200px">
     <div
-        style="position: absolute; bottom: 0px; right: 0px; margin: 10px; z-index: 200; background: lightgray; padding: 8px; border-radius: 8px; font-size: smaller !important;">
-        <button id="manualButton" onclick="setManual()" class="btn btn-secondary btn-sm"
-            style="border-width: 2px; border-color: coral;">Manual</button>
-        <button id="automaticButton" onclick="setAutomatic()" class="btn btn-secondary btn-sm"
-            style="border-width: 2px;">Automatic</button>
-        <div class="d-flex flex-row mt-2">
+        style="position: absolute; bottom: 0px; right: 0px; margin: 10px; z-index: 200; background: lightgray; padding: 14px 20px; border-radius: 8px; font-size: smaller !important;">
+        <div id="spinSettings" class="d-flex flex-column mb-3">
+            <div class="d-flex flex-row justify-content-between">
+                <div>40</div>
+                <div style="width: 70%;" class="d-flex flex-column align-items-center">
+                    <input id="degPerSec" type="range" min="40" max="360" step="1.0" value="100" width="100%">
+                    <div>deg / s</div>
+                </div>
+                <div>360</div>
+            </div>
+            <div class="mt-2" style="width: 100%; height: 1px; background: darkgray;"></div>
+        </div>
+        <div id="randomSettings" class="d-flex flex-column mb-3">
+            <div class="d-flex flex-row justify-content-between">
+                <div>500</div>
+                <div style="width: 70%;" class="d-flex flex-column align-items-center">
+                    <input id="jumpInterval" type="range" min="500" max="5000" step="500" value="1000" width="100%">
+                    <div>jump interval in ms</div>
+                </div>
+                <div>5000</div>
+            </div>
+            <div class="mt-2" style="width: 100%; height: 1px; background: darkgray;"></div>
+        </div>
+        <div class="d-flex flex-row">
+            <button id="manualButton" onclick="setManual()" class="btn btn-secondary btn-sm"
+                style="border-width: 2px; border-color: coral;">Manual</button>
+            <button id="automaticButton" onclick="setAutomatic()" class="btn btn-secondary btn-sm ml-2"
+                style="border-width: 2px;">Random</button>
+            <button id="spinButton" onclick="setSpin()" class="btn btn-secondary btn-sm ml-2"
+                style="border-width: 2px;">Spin</button>
+            <button id="scrollButton" onclick="setScroll()" class="btn btn-secondary btn-sm ml-2"
+                style="border-width: 2px;">Scroll</button>
 
-            <div style="width: 100%">X:<span id="x"> -</span></div>
-            <div style="width: 100%">Y:<span id="y"> -</span></div>
+        </div>
+
+        <div class="d-flex flex-row mt-2">
+            <div style="width: 100%">F:<span id="front"> -</span></div>
+            <div style="width: 100%">R:<span id="right"> -</span></div>
+            <div style="width: 100%">B:<span id="back"> -</span></div>
+            <div style="width: 100%">L:<span id="left"> -</span></div>
+        </div>
+
+    </div>
+    <div class="d-flex justify-content-center align-items-center"
+        style="position: absolute; width: 100%; height: 100%; z-index: 5">
+        <div class="text-center text-secondary"
+            style="width: 800; height: 800;border-radius: 400px; border-color: darkgray; border-width: 5px; border: 3px dotted gray">
+            <b>audio angle</b>
         </div>
     </div>
-    <div style="position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 100;">
+    <div style="position: absolute; width: 100%; height: 100%; z-index: 100;">
         <div id="base" style="width: 100%; height: 100%; background: transparent;">
             <div id="pointer"
-                style="width: 40px; height: 40px; border-radius: 20px; background: coral; position: relative; left: 200px; top: 20px;">
+                style="width: 40px; height: 40px; border-radius: 20px; background: coral; position: relative; left: -200px; top: -200px;">
 
             </div>
         </div>
     </div>
-    <div style="position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 0;">
+    <div style="position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; z-index: 10;">
         <div class="w-100 h-100 d-flex justify-content-center align-items-center">
             <img width="300" style="margin-bottom: 80px;" src="cap.png">
         </div>
 
     </div>
+    <div
+        style="position: absolute; left: 0px; bottom: 0px; margin: 10px; z-index: 200; background: lightgray; padding: 14px 20px; border-radius: 8px; font-size: smaller !important;">
+        <b>Audio</b>
+        <div>
+            <input type="checkbox" id="whiteNoise" name="whiteNoise" value="whiteNoise" class="mt-2">
+            <label for="whiteNoise"> White Noise</label><br>
+            <input type="checkbox" id="tactileCues" name="tactileCues" value="tactileCues" class="">
+            <label for="tactileCues"> Tactile Cues</label><br>
+        </div>
+        <script>
+            $('#whiteNoise').change(function () {
+                if (this.checked) {
+                    whiteNoiseEnableControl.send([176, 16, 127]);
+                } else {
+                    whiteNoiseEnableControl.send([176, 16, 0]);
+                }
+            });
+            $('#tactileCues').change(function () {
+                if (this.checked) {
+                    clickEnableControl.send([176, 16, 127]);
+                } else {
+                    clickEnableControl.send([176, 16, 0]);
+                }
+            });     
+        </script>
+    </div>
 
 
     <script>
+        function toggleSpinSettings(enable) {
+            if (!enable) {
+                $('#spinSettings').removeClass("d-flex");
+                $('#spinSettings').hide();
+            } else {
+                $('#spinSettings').show();
+                $('#spinSettings').addClass("d-flex");
+            }
+        }
+
+        function toggleJumpSettings(enable) {
+            if (!enable) {
+                $('#randomSettings').removeClass("d-flex");
+                $('#randomSettings').hide();
+            } else {
+                $('#randomSettings').show();;
+                $('#randomSettings').addClass("d-flex");
+            }
+        }
+
         var isManual = true;
         var isAutomatic = false;
+        var isSpinning = false;
+        var isScroll = false;
+        var currentSpinAngle = 0;
+        toggleSpinSettings(false);
+        toggleJumpSettings(false);
+
         function setManual() {
             isManual = true;
             isAutomatic = false;
+            isSpinning = false;
+            isScroll = false;
             $("#automaticButton").css("border-color", "transparent");
             $("#manualButton").css("border-color", "coral");
+            $("#spinButton").css("border-color", "transparent")
             $('#pointer').css("background-color", "coral");
+            $('#scrollButton').css("border-color", "transparent")
+            toggleSpinSettings(false);
+            toggleJumpSettings(false);
         }
 
         function setAutomatic() {
             isManual = false;
             isAutomatic = true;
+            isSpinning = false;
+            isScroll = false;
             $("#manualButton").css("border-color", "transparent")
             $("#automaticButton").css("border-color", "lightseagreen")
+            $("#spinButton").css("border-color", "transparent")
+            $('#scrollButton').css("border-color", "transparent")
             $('#pointer').css("background-color", "lightseagreen");
             randomPosition();
+            toggleSpinSettings(false);
+            toggleJumpSettings(true);
         }
 
+        function setSpin() {
+            isManual = false;
+            isAutomatic = false;
+            isSpinning = true;
+            isScroll = false;
+            $("#manualButton").css("border-color", "transparent")
+            $("#automaticButton").css("border-color", "transparent")
+            $("#spinButton").css("border-color", "blueviolet")
+            $('#scrollButton').css("border-color", "transparent")
+            $('#pointer').css("background-color", "blueviolet");
+            toggleSpinSettings(true);
+            toggleJumpSettings(false);
+        }
+
+        function setScroll() {
+            isManual = false;
+            isAutomatic = false;
+            isSpinning = false;
+            isScroll = true;
+            $('#scrollButton').css("border-color", "orange")
+            $("#manualButton").css("border-color", "transparent")
+            $("#automaticButton").css("border-color", "transparent")
+            $("#spinButton").css("border-color", "transparent")
+            $('#pointer').css("background-color", "orange");
+        }
+
+        $(window).on('wheel', function (event) {
+            if (!isScroll) return;
+            if (event.originalEvent.deltaY !== 0) {
+                if (event.originalEvent.deltaY < 0) {
+                    currentSpinAngle += event.originalEvent.deltaY * 0.1;
+                }
+                else {
+                    currentSpinAngle += event.originalEvent.deltaY * 0.1;
+                }
+                currentSpinAngle = currentSpinAngle % 360;
+                var x = Math.sin(currentSpinAngle / 360 * 2 * Math.PI)
+                var y = Math.cos(currentSpinAngle / 360 * 2 * Math.PI)
+                outputData(x, y);
+            }
+            event.preventDefault();
+        });
+
+
         $("#base").mousemove(function (e) {
-            if (isAutomatic) {
+            if (!isManual) {
                 return;
             }
 
@@ -90,45 +239,126 @@
                 return;
             }
 
-            $('#pointer').css("left", relX - 20);
-            $('#pointer').css("top", relY - 20);
-            outputData(relX / window.innerWidth, relY / window.innerHeight);
+            outputData(-1 * (window.innerWidth / 2 - relX) / 400, (window.innerHeight / 2 - relY) / 400);
         });
 
-        function randomPosition() {
-            var angle = Math.random() * 2 * Math.PI;
-            var x = window.innerWidth / 2 + Math.sin(angle) * 300; // TODO
-            var y = window.innerHeight / 2 + Math.cos(angle) * 300; // TODO
-
-            console.log(x);
-            console.log(y);
-
-            $('#pointer').css("left", x - 20);
-            $('#pointer').css("top", y - 20);
-            outputData(x / window.innerWidth, y / window.innerHeight);
+        function radians_to_degrees(radians) {
+            var pi = Math.PI;
+            return radians * (180 / pi);
         }
 
+        function randomPosition() {
+            var randomAngle = Math.random() * 2 * Math.PI;
+            var x = Math.sin(randomAngle);
+            var y = Math.cos(randomAngle);
+            outputData(x, y);
+        }
         setInterval(() => {
+            if (!isSpinning) return;
+            currentSpinAngle += $('#degPerSec').val() * 20 / 1000;
+            currentSpinAngle = currentSpinAngle % 360;
+            var x = Math.sin(currentSpinAngle / 360 * 2 * Math.PI)
+            var y = Math.cos(currentSpinAngle / 360 * 2 * Math.PI)
+
+            //$('#pointer').css("left", x - 20);
+            //$('#pointer').css("top", y - 20);
+            outputData(x, y);
+        }, 20);
+
+        var lastTime = Date.now();
+        setInterval(() => {
+            if (Date.now() - lastTime > $('#jumpInterval').val()) {
+                lastTime = Date.now();
+            } else {
+                return;
+            }
+
             if (!isAutomatic) {
                 return;
             }
             randomPosition();
-        }, 5000);
+        }, 10);
 
         function outputData(x, y) {
+            if (x < -1) {
+                x = -1;
+            }
+            if (y < -1) {
+                y = -1;
+            }
+            if (x > 1) {
+                x = 1;
+            }
+            if (y > 1) {
+                y = 1;
+            }
+
+            var angleVal = Math.atan(x / y);
+
+            var angleInRad = 0;
+            if (x > 0 && y > 0) {
+                angleInRad = angleVal;
+            } else if (x > 0 && y < 0) {
+                angleInRad = Math.PI + angleVal;
+            } else if (x < 0 && y < 0) {
+                angleInRad = Math.PI + angleVal;
+            } else if (x < 0 && y > 0) {
+                angleInRad = Math.PI * 2 + angleVal;
+            }
+            angleInRad -= Math.PI / 2;
+            console.log(angleInRad)
+
+            if (Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) !== 1) {
+                y = Math.sin(-1 * angleInRad);
+                x = Math.cos(-1 * angleInRad);
+            }
+
+
+            $('#pointer').css("left", window.innerWidth / 2 + x * 400 - 20);
+            $('#pointer').css("top", window.innerHeight / 2 - y * 400 - 20);
+
+            console.log("x:" + x)
+            console.log("y:" + y)
+
             if (x === undefined) return;
             if (y === undefined) return;
 
-            $("#x").text(Math.floor(x * 127));
-            $("#y").text(Math.floor(y * 127));
+            var maxVal = 127;
 
-            xOutput.send([176, 16, Math.floor(x * 127)]);
-            yOutput.send([176, 16, Math.floor(y * 127)]);
+            var frontVal = Math.floor(y * maxVal);
+            var rightVal = Math.floor(x * maxVal);
+            var backVal = -1 * Math.floor(y * maxVal);
+            var leftVal = -1 * Math.floor(x * maxVal);
+            if (y <= 0) {
+                frontVal = 0;
+            } else {
+                backVal = 0;
+            }
+            if (x <= 0) {
+                rightVal = 0;
+            } else {
+                leftVal = 0;
+            }
+
+            $("#front").text(frontVal);
+            $("#right").text(rightVal);
+            $("#back").text(backVal);
+            $("#left").text(leftVal);
+
+            front.send([176, 16, frontVal]);
+            left.send([176, 16, leftVal]);
+            back.send([176, 16, backVal]);
+            right.send([176, 16, backVal]);
         }
 
         var midi = null;  // global MIDIAccess object
-        var xOutput = null;
-        var yOutput = null;
+        var front = null;
+        var right = null;
+        var back = null;
+        var left = null;
+        var whiteNoiseEnableControl = null;
+        var clickEnableControl = null;
+
         function onMIDISuccess(midiAccess) {
             console.log("MIDI ready!");
             midi = midiAccess;  // store in the global (in real usage, would probably keep in an object instance)
@@ -148,11 +378,21 @@
                     continue;
                 }
                 if (i === 0) {
-                    xOutput = output;
+                    front = output;
                     i++;
                 } else if (i === 1) {
-                    yOutput = output;
+                    right = output;
                     i++;
+                } else if (i === 2) {
+                    back = output;
+                    i++;
+                } else if (i === 3) {
+                    left = output;
+                    i++;
+                } else if (i === 4) {
+                    whiteNoiseEnableControl = output;
+                } else if (i === 5) {
+                    clickEnableControl = output;
                 }
                 console.log(
                     `Output port [type:'${output.type}'] id: '${output.id}' manufacturer: '${output.manufacturer}' name: '${output.name}' version: '${output.version}'`
