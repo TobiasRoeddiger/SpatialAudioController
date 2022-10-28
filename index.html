@@ -323,7 +323,7 @@
             if (x === undefined) return;
             if (y === undefined) return;
 
-            var maxVal = 127;
+            var maxVal = 107;
 
             var frontVal = Math.floor(y * maxVal);
             var rightVal = Math.floor(x * maxVal);
@@ -340,15 +340,29 @@
                 leftVal = 0;
             }
 
-            $("#front").text(frontVal);
-            $("#right").text(rightVal);
-            $("#back").text(backVal);
-            $("#left").text(leftVal);
+            
 
-            front.send([176, 16, frontVal]);
-            left.send([176, 16, leftVal]);
-            back.send([176, 16, backVal]);
-            right.send([176, 16, backVal]);
+ 
+            var xPos = (leftVal > 0) ? -leftVal : rightVal;
+            var yPos = (frontVal > 0) ? frontVal : -backVal; 
+            
+            var distLeft = Math.floor(Math.sqrt(Math.pow(xPos - 20, 2) + Math.pow(yPos, 2)))
+            var distRight  = Math.floor(Math.sqrt(Math.pow(xPos + 20, 2) + Math.pow(yPos, 2)))
+
+            $("#front").text(frontVal);
+            $("#right").text(distRight);
+            $("#back").text(backVal);
+            $("#left").text(distLeft);
+
+            console.log("distLeft: " + distLeft);
+            console.log("distRight: " + distRight);
+
+            //front.send([176, 16, frontVal]);
+            front.send([176, 16, 0]);
+            left.send([176, 16, distLeft]);
+            //back.send([176, 16, backVal]);
+            back.send([176, 16, 0]);
+            right.send([176, 16, distRight]);
         }
 
         var midi = null;  // global MIDIAccess object
