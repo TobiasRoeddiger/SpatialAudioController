@@ -67,10 +67,9 @@
         </div>
 
         <div class="d-flex flex-row mt-2">
-            <div style="width: 100%">F:<span id="front"> -</span></div>
             <div style="width: 100%">R:<span id="right"> -</span></div>
-            <div style="width: 100%">B:<span id="back"> -</span></div>
             <div style="width: 100%">L:<span id="left"> -</span></div>
+            <div style="width: 100%">ITD:<span id="itd"> -</span></div>
         </div>
 
     </div>
@@ -349,13 +348,13 @@
             var distLeft = Math.floor(Math.sqrt(Math.pow(xPos - 20, 2) + Math.pow(yPos, 2)))
             var distRight  = Math.floor(Math.sqrt(Math.pow(xPos + 20, 2) + Math.pow(yPos, 2)))
 
-            $("#front").text(frontVal);
             $("#right").text(distRight);
-            $("#back").text(backVal);
             $("#left").text(distLeft);
 
             console.log("distLeft: " + distLeft);
             console.log("distRight: " + distRight);
+ 
+            $("#itd").text("TODO");
 
             //front.send([176, 16, frontVal]);
             front.send([176, 16, 0]);
