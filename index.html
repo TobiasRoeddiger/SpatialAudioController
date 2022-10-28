@@ -353,8 +353,11 @@
 
             console.log("distLeft: " + distLeft);
             console.log("distRight: " + distRight);
+
+            var correctedAngle = angleInRad + Math.PI / 2 - Math.PI;
+            
  
-            $("#itd").text("TODO");
+            $("#itd").text(correctedAngle % Math.PI);
 
             //front.send([176, 16, frontVal]);
             front.send([176, 16, 0]);
